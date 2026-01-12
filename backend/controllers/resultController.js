@@ -1,4 +1,4 @@
-import Result from '../models/resultModel';
+import Result from '../models/resultModel.js';
 
 export async function createResult(req, res) {
     try {
@@ -47,8 +47,7 @@ export async function createResult(req, res) {
     }
 }
 
-//List the Result
-
+// List the Result
 export async function listResults(req, res) {
     try {
         if (!req.user || !req.user.id) {

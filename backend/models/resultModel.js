@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 
-const performance = ["Excellent", "Good", "Average", "Needs Work"];
+const performanceEnum = ["Excellent", "Good", "Average", "Needs Work"];
 
-const resultSchema = new mongoose.Schema({
+const ResultSchema = new mongoose.Schema({
     user: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false},
     title: {type: String, required: true, trim: true },
         technology: {
@@ -51,5 +51,5 @@ ResultSchema.pre('save', function(next) {
     next();
 })
 
-const Result = mongoose.models.Result || mongoose.model('Result', resultSchema);
+const Result = mongoose.models.Result || mongoose.model('Result', ResultSchema);
 export default Result;
