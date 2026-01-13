@@ -11,18 +11,20 @@ const Navbar = ({ logoSrc }) => {
     
     // Listen for auth changes
     useEffect(() => {
-        const handleAuthChange = (event) => {
-            setLoggedIn(!!event.detail.user);
+        try {
+            const u = localStorage.getItem("authToken");
+            setLoggedIn(!!u);
+        } catch (e) {
+            setLoggedIn(false);
+        }
+
+        const handler = (ev) => {
+            const detailUser = ev?.detail?.user ?? null;
+            setLoggedIn(!!detailUser);
         };
-        
-        window.addEventListener("authChanged", handleAuthChange);
-        
-        // Check auth status on mount
-        setLoggedIn(!!localStorage.getItem('authToken'));
-        
-        return () => {
-            window.removeEventListener("authChanged", handleAuthChange);
-        };
+        window.addEventListener("authChanged", handler);
+
+        return () => window.removeEventListener("authChanged", handler);
     }, []);
 
 // Logout Function
