@@ -1,12 +1,29 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {Link, NavLink, useNavigate} from "react-router-dom";
 import {navbarStyles} from "../assets/dummyStyles.js";
-import {Award} from 'lucide-react';
+import {Award, LogOut, LogIn, Menu, X} from 'lucide-react';
 
-const Navbar = (logoSrc) => {
+const Navbar = ({ logoSrc }) => {
     const navigate = useNavigate();
-    const [loggedIn, setLoggedIn] = useState(false);
+    // Using useState for loggedIn state, will be updated by auth events
+    const [loggedIn, setLoggedIn] = useState(localStorage.getItem('authToken') ? true : false);
     const [menuOpen, setMenuOpen] = useState(false);
+    
+    // Listen for auth changes
+    useEffect(() => {
+        const handleAuthChange = (event) => {
+            setLoggedIn(!!event.detail.user);
+        };
+        
+        window.addEventListener("authChanged", handleAuthChange);
+        
+        // Check auth status on mount
+        setLoggedIn(!!localStorage.getItem('authToken'));
+        
+        return () => {
+            window.removeEventListener("authChanged", handleAuthChange);
+        };
+    }, []);
 
 // Logout Function
     const handleLogout = () => {
@@ -14,7 +31,7 @@ const Navbar = (logoSrc) => {
             localStorage.removeItem('authToken');
             localStorage.clear();
         } catch (e) {
-            // ignore all errors
+            console.log(e);
         }
         window.dispatchEvent(new CustomEvent("authChanged", {detail: {user: null} }));
         setMenuOpen(false);
@@ -22,6 +39,7 @@ const Navbar = (logoSrc) => {
             navigate('/login');
         } catch (e) {
             window.location.href = '/login';
+            console.log(e);
         }
     };
     return (
@@ -79,12 +97,41 @@ const Navbar = (logoSrc) => {
 
                 <div className={navbarStyles.mobileMenuContainer}>
                     <button onClick={() => setMenuOpen((s) => !s)} className={navbarStyles.menuToggleButton}>
-                        {menuOpen ? (<X className={navbarStyles.menuIcon}/>) : ( <Menu className={navbarStyles.buttonIcon}/>)}
+                        {menuOpen ? (<X className={navbarStyles.menuIcon}/>) : (<Menu className={navbarStyles.menuIcon}/>
+                        )}
                     </button>
 
+                    {menuOpen && (
+                        <div className={navbarStyles.mobileMenuPanel}>
+                            <ul className={navbarStyles.mobileMenuList}>
+                                <li>
+                                    <NavLink to ="/result" className={navbarStyles.mobileMenuItem} onClick={() => setMenuOpen(false)}>
+                                    <Award className={navbarStyles.mobileMenuItem} />
+                                        My Result
+                                    </NavLink>
+                                </li>
 
+                                {loggedIn ? (
+                                    <li>
+                                        <button type="button" className={navbarStyles.mobileMenuItem} onClick={handleLogout}>
+                                            <LogOut className={navbarStyles.mobileMenuItem} />
+                                                Logout
+                                        </button>
+                                    </li>
+                                ) : (
+                                    <li>
+                                        <NavLink to="/login" className={navbarStyles.mobileMenuItem} onClick={() => setMenuOpen(false)}>
+                                            <LogIn className={navbarStyles.mobileMenuItem} />
+                                                Login
+                                        </NavLink>
+                                    </li>
+                                )}
+                            </ul>
+                        </div>
+                    )}
                 </div>
             </div>
+
        </nav>
     );
 };
