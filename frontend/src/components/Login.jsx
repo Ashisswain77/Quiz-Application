@@ -5,7 +5,7 @@ import {ArrowLeft, EyeOff, Eye, Lock, LogIn, Mail} from "lucide-react";
 
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-const Login = () => {
+const Login = ({ onLoginSuccess = null }) => {
     const navigate = useNavigate();
 
     const [email, setEmail] = useState("");
@@ -26,7 +26,7 @@ const Login = () => {
         setLoading(true);
         try {
             const payload = {email: email.trim().toLowerCase(), password};
-            const resp = await fetch(`${API_BASE}auth/login`, {
+            const resp = await fetch(`${API_BASE}api/auth/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -60,7 +60,7 @@ const Login = () => {
 
             const user = data?.user || {email: payload.email};
             window.dispatchEvent(new CustomEvent("authChanged", {detail: {user}}));
-            if (typeof onLoginSuccess === "function") onloginSuccess(user);
+            if (typeof onLoginSuccess === "function") onLoginSuccess(user);
             navigate("/", { replace: true});
         } catch (err) {
             console.log("Login Error: ", err);
@@ -91,7 +91,7 @@ const Login = () => {
             </Link>
 
             <div className={loginStyles.formContainer}>
-                <form className={loginStyles.form} noValidate>
+                <form onSubmit={handleSubmit} className={loginStyles.form} noValidate>
                     <div className={loginStyles.formWrapper}>
                         <div className={loginStyles.animatedBorder}>
                             <div className={loginStyles.formContent}>
