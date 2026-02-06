@@ -5,7 +5,7 @@ import validator from "validator";
 import User from "../models/userModel.js";
 
 const TOKEN_EXPIRES_IN = "24h";
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_here';
 
 export async function register(req, res) {
     try {
@@ -63,6 +63,8 @@ export async function login(req, res) {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(401).json({ success: false, message: "Invalid email or password." });
 
+        if (!JWT_SECRET) throw new Error("JWT_SECRET is not defined on the server");
+        
         const token = jwt.sign({ id: user._id.toString() }, JWT_SECRET, { expiresIn: TOKEN_EXPIRES_IN });
 
         return res.status(200).json({

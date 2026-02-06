@@ -1,11 +1,34 @@
-import {React, useState, useEffect, useRef }from 'react';
-import {sidebarStyles} from "../assets/dummyStyles.js";
-import questionsData from "../assets/dummydata.js";
-import {ChevronDown, ChevronRight, Code, Cpu, Globe, Layout, X, BookOpen, Sparkles, Trophy, Award, Database, Coffee, Terminal, Star, Zap, Target, Menu, CheckCircle, XCircle} from "lucide-react";
-import {toast} from "react-toastify";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import {
+    BookOpen,
+    Code,
+    Database,
+    Coffee,
+    Cpu,
+    Globe,
+    Layout,
+    ChevronRight,
+    ChevronDown,
+    CheckCircle,
+    XCircle,
+    Award,
+    Terminal,
+    Star,
+    Trophy,
+    Sparkles,
+    Zap,
+    Target,
+    Menu,
+    X,
+} from "lucide-react";
 
-const API_BASE = 'http://localhost:4000/';
+import questionsData from "../Sidebar/dummydata";
+import { sidebarStyles } from "../../assets/dummyStyles";
+
+const API_BASE = "http://localhost:5000";
 
 const Sidebar = () => {
     const [selectedTech, setSelectedTech] = useState(null);
@@ -40,7 +63,6 @@ const Sidebar = () => {
         };
     }, [isSidebarOpen]);
 
-    // techs and levels
     const technologies = [
         {
             id: "html",
@@ -149,33 +171,33 @@ const Sidebar = () => {
         }, 120);
     };
 
-   const handleLevelSelect = (levelId) => {
-       setSelectedLevel(levelId);
-       setCurrentQuestion(0);
-       setUserAnswers({});
-       setShowResults(false);
-       submittedRef.current = false;
+    const handleLevelSelect = (levelId) => {
+        setSelectedLevel(levelId);
+        setCurrentQuestion(0);
+        setUserAnswers({});
+        setShowResults(false);
+        submittedRef.current = false;
 
-       if (window.innerWidth < 768) setIsSidebarOpen(true);
-   }
+        if (window.innerWidth < 768) setIsSidebarOpen(false);
+    };
 
-   const _handleAnswerSelect = (questionId, answerId) => {
-       const newAnswers = { ...userAnswers };
-       newAnswers[questionId] = answerId;
-       setUserAnswers(newAnswers);
-       setTimeout(() => {
-           if (currentQuestion < getQuestions().length - 1) {
-               setCurrentQuestion((prev) => prev + 1);
-           } else {
-               setShowResults(true);
-           }
-       }, 500);
-   }
-   const getQuestions = () => {
-       if(!selectedTech || !selectedLevel) return [];
-       return questionsData[selectedTech]?.[selectedLevel] || [];
-   }
-   // calculate score
+    const handleAnswerSelect = (answerIndex) => {
+        const newAnswers = { ...userAnswers, [currentQuestion]: answerIndex };
+        setUserAnswers(newAnswers);
+        setTimeout(() => {
+            if (currentQuestion < getQuestions().length - 1) {
+                setCurrentQuestion((prev) => prev + 1);
+            } else {
+                setShowResults(true);
+            }
+        }, 500);
+    };
+
+    const getQuestions = () => {
+        if (!selectedTech || !selectedLevel) return [];
+        return questionsData[selectedTech]?.[selectedLevel] || [];
+    };
+
     const calculateScore = () => {
         const questions = getQuestions();
         let correct = 0;
@@ -193,16 +215,15 @@ const Sidebar = () => {
         };
     };
 
-   //reset the quiz
-    const _resetQuiz = () => {
+    const resetQuiz = () => {
         setCurrentQuestion(0);
         setUserAnswers({});
         setShowResults(false);
         submittedRef.current = false;
-    }
+    };
 
     const questions = getQuestions();
-    const _currentQ = questions[currentQuestion];
+    const currentQ = questions[currentQuestion];
     const score = calculateScore();
 
     const getPerformanceStatus = () => {
@@ -231,19 +252,21 @@ const Sidebar = () => {
         };
     };
 
-    const _performance = getPerformanceStatus();
+    const performance = getPerformanceStatus();
 
     const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
     const getAuthHeader = () => {
-        const token = localStorage.getItem("token") ||
-            localStorage.getItem("authToken") || null;
+        const token =
+            localStorage.getItem("token") ||
+            localStorage.getItem("authToken") ||
+            null;
         return token ? { Authorization: `Bearer ${token}` } : {};
     };
 
     const submitResult = async () => {
-        if(submittedRef.current) return;
-        if(!selectedTech || !selectedLevel) return;
+        if (submittedRef.current) return;
+        if (!selectedTech || !selectedLevel) return;
 
         const payload = {
             title: `${selectedTech.toUpperCase()} - ${
@@ -255,19 +278,24 @@ const Sidebar = () => {
             correct: score.correct,
             wrong: score.total - score.correct,
         };
+
         try {
             submittedRef.current = true;
-            toast.info("Submitting result...");
-            const res = await axios.post(`${API_BASE}api/results`, payload, {
+            toast.info("Saving your result...");
+            const res = await axios.post(`${API_BASE}/api/results`, payload, {
                 headers: {
-                'Content-Type': 'application/json',
+                    "Content-Type": "application/json",
                     ...getAuthHeader(),
-                }, timeout: 10000,
+                },
+                timeout: 10000,
             });
 
-            if(res.data && res.data.success) toast.success("Result submitted successfully!");
-            else toast.warn("Error submitting result!");
-            submittedRef.current = false;
+            if (res.data && res.data.success) {
+                toast.success("Result saved!");
+            } else {
+                toast.warn("Result not saved. Server responded unexpectedly.");
+                submittedRef.current = false;
+            }
         } catch (err) {
             submittedRef.current = false;
             console.error(
@@ -276,7 +304,7 @@ const Sidebar = () => {
             );
             toast.error("Could not save result. Check console or network.");
         }
-    }
+    };
 
     useEffect(() => {
         if (showResults) {
@@ -287,36 +315,46 @@ const Sidebar = () => {
 
     return (
         <div className={sidebarStyles.pageContainer}>
+            {/* Mobile overlay when sidebar is open */}
             {isSidebarOpen && (
-                <div onClick={() => window.innerWidth < 768 && setIsSidebarOpen(false)}
-                     className={sidebarStyles.mobileOverlay}>
-                </div>
+                <div
+                    onClick={() => window.innerWidth < 768 && setIsSidebarOpen(false)}
+                    className={sidebarStyles.mobileOverlay}
+                    aria-hidden
+                />
             )}
 
             <div className={sidebarStyles.mainContainer}>
-                <aside ref={asideRef} className={`${sidebarStyles.sidebar} ${
-                    isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-                }`}>
+                {/* Sidebar */}
+                <aside
+                    ref={asideRef}
+                    className={`${sidebarStyles.sidebar} ${
+                        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+                    }`}
+                    aria-hidden={!isSidebarOpen && window.innerWidth < 768}
+                >
                     <div className={sidebarStyles.sidebarHeader}>
-                        <div className={sidebarStyles.headerDecoration1}>
-                        </div>
-                        <div className={sidebarStyles.headerDecoration2}>
-                        </div>
+                        <div className={sidebarStyles.headerDecoration1} />
+                        <div className={sidebarStyles.headerDecoration2} />
 
                         <div className={sidebarStyles.headerContent}>
                             <div className={sidebarStyles.logoContainer}>
                                 <div className={sidebarStyles.logoIcon}>
-                                    <BookOpen  size={28} className="text-indigo-700" />
+                                    <BookOpen size={28} className="text-indigo-700" />
                                 </div>
                                 <div>
-                                    <h1 className={sidebarStyles.logoTitle}>Tech quiz Master</h1>
+                                    <h1 className={sidebarStyles.logoTitle}>Tech Quiz Master</h1>
                                     <p className={sidebarStyles.logoSubtitle}>
-                                        Test your Knowledge and Improve skills
+                                        Test your knowledge & improve skills
                                     </p>
                                 </div>
                             </div>
 
-                            <button onClick={toggleSidebar} className={sidebarStyles.closeButton}>
+                            <button
+                                onClick={toggleSidebar}
+                                className={sidebarStyles.closeButton}
+                                aria-label="Close sidebar"
+                            >
                                 <X size={20} />
                             </button>
                         </div>
@@ -326,28 +364,35 @@ const Sidebar = () => {
                         <div className={sidebarStyles.technologiesHeader}>
                             <h2 className={sidebarStyles.technologiesTitle}>Technologies</h2>
                             <span className={sidebarStyles.technologiesCount}>
-                                {technologies.length} options
-                            </span>
+                {technologies.length} options
+              </span>
                         </div>
 
                         {technologies.map((tech) => (
-                            <div key={tech.id} className={sidebarStyles.techItem} data-tech={tech.id}
+                            <div
+                                key={tech.id}
+                                className={sidebarStyles.techItem}
+                                data-tech={tech.id}
                             >
-                                <button onClick={() => handleTechSelect(tech.id)}
-                                className={`${sidebarStyles.techButton} ${selectedTech === tech.id ? `${tech.color} ${sidebarStyles.techButtonSelected}`: sidebarStyles.techButtonNormal}`}
+                                <button
+                                    onClick={() => handleTechSelect(tech.id)}
+                                    className={`${sidebarStyles.techButton} ${
+                                        selectedTech === tech.id
+                                            ? `${tech.color} ${sidebarStyles.techButtonSelected}`
+                                            : sidebarStyles.techButtonNormal
+                                    }`}
                                 >
                                     <div className={sidebarStyles.techButtonContent}>
-                                        <span className={`${sidebarStyles.techIcon} ${tech.color}`}>
-                                            {tech.icon}
-                                        </span>
+                    <span className={`${sidebarStyles.techIcon} ${tech.color}`}>
+                      {tech.icon}
+                    </span>
                                         <span className={sidebarStyles.techName}>{tech.name}</span>
                                     </div>
-
                                     {selectedTech === tech.id ? (
-                                        <ChevronDown size={18} className={"text-current"} />
-                                        ) : (
-                                            <ChevronRight size={18} className={"text-gray-400"} />
-                                        )}
+                                        <ChevronDown size={18} className="text-current" />
+                                    ) : (
+                                        <ChevronRight size={18} className="text-gray-400" />
+                                    )}
                                 </button>
 
                                 {selectedTech === tech.id && (
@@ -355,39 +400,55 @@ const Sidebar = () => {
                                         <h3 className={sidebarStyles.levelsTitle}>
                                             <span>Select Difficulty</span>
                                             <span className={sidebarStyles.techBadge}>
-                                                {technologies.find((t) => t.id === selectedTech).name}
-                                            </span>
+                        {technologies.find((t) => t.id === selectedTech).name}
+                      </span>
                                         </h3>
 
                                         {levels.map((level) => (
-                                        <button
-                                            key={level.id}
-                                            onClick={() => handleLevelSelect(level.id)}
-                                            className={`${sidebarStyles.levelButton} ${
-                                                selectedLevel === level.id
-                                                    ? `${level.color} ${sidebarStyles.levelButtonSelected}`
-                                                    : sidebarStyles.levelButtonNormal
-                                            }`}
-                                        >
-                                            <div className={sidebarStyles.levelButtonContent}>
-                                                <span className={`${sidebarStyles.levelIcon} ${selectedLevel === level.id ? "bg-white/40" : "bg-gray-100"}`}>
-                                                    {level.icon}
-                                                </span>
-                                                <span>{level.name}</span>
-                                            </div>
-                                            <span className={sidebarStyles.levelQuestions}>
-                                                {level.questions} Qs
-                                            </span>
-                                        </button>
+                                            <button
+                                                key={level.id}
+                                                onClick={() => handleLevelSelect(level.id)}
+                                                className={`${sidebarStyles.levelButton} ${
+                                                    selectedLevel === level.id
+                                                        ? `${level.color} ${sidebarStyles.levelButtonSelected}`
+                                                        : sidebarStyles.levelButtonNormal
+                                                }`}
+                                            >
+                                                <div className={sidebarStyles.levelButtonContent}>
+                          <span
+                              className={`${sidebarStyles.levelIcon} ${
+                                  selectedLevel === level.id
+                                      ? "bg-white/40"
+                                      : "bg-gray-100"
+                              }`}
+                          >
+                            {level.icon}
+                          </span>
+                                                    <span>{level.name}</span>
+                                                </div>
+                                                <span className={sidebarStyles.levelQuestions}>
+                          {level.questions} Qs
+                        </span>
+                                            </button>
                                         ))}
                                     </div>
                                 )}
                             </div>
                         ))}
                     </div>
+
+                    <div className={sidebarStyles.sidebarFooter}>
+                        <div className={sidebarStyles.footerContent}>
+                            <div className={sidebarStyles.footerContentCenter}>
+                                <p>Master your skills one quiz at a time</p>
+                                <p className={sidebarStyles.footerHighlight}>
+                                    Keep Learning, Keep Growing!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </aside>
 
-                {/* QUESTION AND ANSWER ALSO RESULT */}
                 <main className={sidebarStyles.mainContent}>
                     <div className={sidebarStyles.mobileHeader}>
                         <button
@@ -604,7 +665,7 @@ const Sidebar = () => {
                                 </div>
                             </div>
                         </div>
-                    ) : _currentQ ? (
+                    ) : currentQ ? (
                         <div className={sidebarStyles.quizContainer}>
                             <div className={sidebarStyles.quizHeader}>
                                 <div className={sidebarStyles.quizTitleContainer}>
@@ -637,21 +698,21 @@ const Sidebar = () => {
                                         <Target size={20} />
                                     </div>
                                     <h2 className={sidebarStyles.questionText}>
-                                        {_currentQ.question}
+                                        {currentQ.question}
                                     </h2>
                                 </div>
 
                                 <div className={sidebarStyles.optionsContainer}>
-                                    {_currentQ.options.map((option, index) => {
+                                    {currentQ.options.map((option, index) => {
                                         const isSelected = userAnswers[currentQuestion] === index;
-                                        const isCorrect = index === _currentQ.correctAnswer;
+                                        const isCorrect = index === currentQ.correctAnswer;
                                         const showFeedback =
                                             userAnswers[currentQuestion] !== undefined;
 
                                         return (
                                             <button
                                                 key={index}
-                                                onClick={() => _handleAnswerSelect(currentQuestion, index)}
+                                                onClick={() => handleAnswerSelect(index)}
                                                 disabled={userAnswers[currentQuestion] !== undefined}
                                                 className={`${sidebarStyles.optionButton} ${
                                                     isSelected
@@ -713,6 +774,8 @@ const Sidebar = () => {
                     )}
                 </main>
             </div>
+
+            <style>{sidebarStyles.customStyles}</style>
         </div>
     );
 };

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { signupStyles } from "../assets/dummyStyles.js";
+import { signupStyles } from "../../assets/dummyStyles.js";
 import {ArrowLeft, CheckCheck, CheckCircle, Eye, EyeOff, Lock, Mail, User, UserPlus} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-const Signup = ({ onSignupSuccess = null }) => {
+const SignupPage = ({ onSignupSuccess = null }) => {
     const navigate = useNavigate();
 
     const [name, setName] = useState("");
@@ -28,7 +28,7 @@ const Signup = ({ onSignupSuccess = null }) => {
         return e;
     };
 
-    const API_BASE = 'http://localhost:4000/';
+    const API_BASE = 'http://localhost:4000';
 
     const handleSubmit = async (ev) => {
         ev.preventDefault();
@@ -56,7 +56,7 @@ const Signup = ({ onSignupSuccess = null }) => {
             }
 
             if (!resp.ok) {
-                const msg = data?.message || "Signup Failed!";
+                const msg = data?.message || "SignupPage Failed!";
                 setSubmitError(msg);
                 return;
             }
@@ -82,7 +82,7 @@ const Signup = ({ onSignupSuccess = null }) => {
             }
             navigate("/login", { replace: true});
         } catch (err) {
-            console.log("Signup Error: ", err);
+            console.log("SignupPage Error: ", err);
             setSubmitError("Network Error!");
         } finally {
             setLoading(false);
@@ -240,4 +240,4 @@ const Signup = ({ onSignupSuccess = null }) => {
     );
 };
 
-export default Signup;
+export default SignupPage;

@@ -126,7 +126,7 @@ export const loginStyles = {
     submitButtonIcon: "w-4 h-4",
     submitButtonText: "text-sm sm:text-base",
 
-    // Signup section
+    // SignupPage section
     signupContainer: "mt-6",
     signupContent: "flex flex-col sm:flex-row items-center justify-center gap-3 px-4 py-3 rounded-full bg-white/80 backdrop-blur-sm shadow",
     signupText: "text-sm text-gray-700",
